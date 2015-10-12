@@ -1,0 +1,15 @@
+{
+  "name": "angular-oauth2",
+  "version": "1.0.0",
+  "description": "Oauth2 module for AngularJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "angular",
+    "oauth2"
+  ],
+  "author": "Simon Rönnberg <simon.ronnberg@codemill.se>",
+  "license": "MIT"
+}
