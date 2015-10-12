@@ -15,7 +15,7 @@ angular.module('codemill.oauth2', [])
         })
         .catch(function (response) {
           $log.error('Failed auth request', response);
-          if (response.data === null) {
+          if (response.data === null || response.data === undefined) {
             throw 'Failed contacting authentication server';
           }
           switch (response.data.error_description) {

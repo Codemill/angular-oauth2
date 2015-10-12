@@ -1,39 +1,73 @@
 describe('codemill.oauth2.cmOauth2PasswordService', function () {
-  var service, httpBackend;
+  var service, httpBackend, exceptionHandler;
 
   beforeEach(module('codemill.oauth2'));
+
   beforeEach(module(function($provide) {
     $provide.constant('Oauth2', {
       password : {
-        uri: 'http://test',
+        uri: '/auth',
         clientId: 'test'
       }
     });
   }));
-  beforeEach(inject(function(_cmOauth2PasswordService_, $httpBackend) {
+
+  beforeEach(module(function($exceptionHandlerProvider) {
+    $exceptionHandlerProvider.mode('log');
+  }));
+
+  beforeEach(inject(function(_cmOauth2PasswordService_, $httpBackend, $exceptionHandler) {
     service = _cmOauth2PasswordService_;
     httpBackend = $httpBackend;
+    exceptionHandler = $exceptionHandler;
   }));
 
   it('should be successful', function() {
-    httpBackend.expectPOST('http://test', 'grant_type=password&client_id=test&username=username&password=password')
+    httpBackend.whenPOST('/auth', 'grant_type=password&client_id=test&username=username&password=password')
       .respond(200, '{ "access_token" : "token" }');
 
     service.login("username", "password")
       .then(function(data) {
         expect(data.access_token).toEqual('token');
       });
+    httpBackend.flush();
   });
 
-  it('should fail with ', function() {
-    httpBackend.expectPOST('http://test', 'grant_type=password&client_id=test&username=username&password=password')
-      .respond(200, '{ "access_token" : "token" }');
+  it('should fail with connection failure', function() {
+    httpBackend.whenPOST('/auth', 'grant_type=password&client_id=test&username=username&password=password')
+      .respond(400);
 
-    service.login("username", "password")
-      .then(function(data) {
-        expect(data.access_token).toEqual('token');
-      });
+    service.login("username", "password");
+    httpBackend.flush();
+    expect(exceptionHandler.errors).toEqual(['Failed contacting authentication server']);
   });
 
+  it('should fail with user not found', function() {
+    httpBackend.whenPOST('/auth', 'grant_type=password&client_id=test&username=username&password=password')
+      .respond(404, { error_description : 'NotFound' });
+
+    service.login("username", "password");
+    httpBackend.flush();
+    expect(exceptionHandler.errors).toEqual(['User not found']);
+  });
+
+  it('should fail with wrong password', function() {
+    httpBackend.whenPOST('/auth', 'grant_type=password&client_id=test&username=username&password=password')
+      .respond(404, { error_description : 'BadRequest' });
+
+    service.login("username", "password");
+    httpBackend.flush();
+    expect(exceptionHandler.errors).toEqual(['Wrong password']);
+  });
+
+
+  it('should fail with wrong password', function() {
+    httpBackend.whenPOST('/auth', 'grant_type=password&client_id=test&username=username&password=password')
+      .respond(500, { error_description : 'Internal Server Error' });
+
+    service.login("username", "password");
+    httpBackend.flush();
+    expect(exceptionHandler.errors).toEqual(['Login failed for unknown reason']);
+  });
 
 });
