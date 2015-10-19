@@ -1,8 +1,9 @@
 'use strict';
 
 angular.module('codemill.oauth2', [])
-  .service('cmOauth2PasswordService', ['Oauth2', '$http', '$log', function (config, $http, $log) {
+  .service('cmOauth2PasswordService', ['Oauth2', '$http', '$log', function (configService, $http, $log) {
     this.login = function (username, password) {
+      var config = configService.getConfig();
       var data = 'grant_type=password&client_id=' + config.password.clientId + '&username=' + username + '&password=' + password;
       return $http.post(config.password.uri, data,
         {

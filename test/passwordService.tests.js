@@ -4,11 +4,15 @@ describe('codemill.oauth2.cmOauth2PasswordService', function () {
   beforeEach(module('codemill.oauth2'));
 
   beforeEach(module(function($provide) {
-    $provide.constant('Oauth2', {
-      password : {
-        uri: '/auth',
-        clientId: 'test'
-      }
+    $provide.service('Oauth2', function() {
+      this.getConfig = function () {
+        return {
+          password: {
+            uri: '/auth',
+            clientId: 'test'
+          }
+        };
+      };
     });
   }));
 
